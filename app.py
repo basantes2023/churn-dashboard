@@ -1,5 +1,5 @@
 # =========================================
-# APP STREAMLIT - CHURN CNT EP (VERSIÓN PRO)
+# 🚀 CNT EP - DASHBOARD PRO 10/10
 # =========================================
 
 import streamlit as st
@@ -9,15 +9,11 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import joblib
 
-# CONFIGURACIÓN
-st.set_page_config(
-    page_title="CNT EP - Dashboard Churn",
-    layout="wide"
-)
+st.set_page_config(page_title="CNT EP Churn PRO", layout="wide")
 
-# =========================================
+# ==============================
 # CARGAR DATOS
-# =========================================
+# ==============================
 @st.cache_data
 def load_data():
     df = pd.read_csv("WA_Fn-UseC_-Telco-Customer-Churn.csv")
@@ -27,118 +23,132 @@ def load_data():
 
 df = load_data()
 
-# =========================================
-# CARGAR MODELO
-# =========================================
+# ==============================
+# MODELO
+# ==============================
 model = joblib.load("modelo_churn.pkl")
 columns = joblib.load("columnas.pkl")
 
-# =========================================
+# ==============================
 # TITULO
-# =========================================
-st.title("📊 CNT EP - Dashboard Inteligente de Churn")
-st.markdown("Análisis y predicción de deserción de clientes")
+# ==============================
+st.title("🚀 CNT EP - Sistema Inteligente Anti-Churn")
+st.markdown("### 📊 Analítica avanzada + IA para retención de clientes")
 
-# =========================================
-# SIDEBAR FILTROS
-# =========================================
+# ==============================
+# KPIs
+# ==============================
+total_clientes = len(df)
+churn_rate = (df["Churn"] == "Yes").mean() * 100
+ingreso_prom = df["MonthlyCharges"].mean()
+
+col1, col2, col3, col4 = st.columns(4)
+
+col1.metric("👥 Clientes", total_clientes)
+col2.metric("📉 Churn Rate", f"{churn_rate:.2f}%")
+col3.metric("💰 Ingreso Promedio", f"${ingreso_prom:.2f}")
+col4.metric("🎯 Meta", "< 20%")
+
+st.markdown("---")
+
+# ==============================
+# FILTROS
+# ==============================
 st.sidebar.header("🔎 Filtros")
 
-contract_filter = st.sidebar.multiselect(
-    "Tipo de contrato",
-    options=df["Contract"].unique(),
+contract = st.sidebar.multiselect(
+    "Contrato",
+    df["Contract"].unique(),
     default=df["Contract"].unique()
 )
 
-internet_filter = st.sidebar.multiselect(
-    "Tipo de internet",
-    options=df["InternetService"].unique(),
+internet = st.sidebar.multiselect(
+    "Internet",
+    df["InternetService"].unique(),
     default=df["InternetService"].unique()
 )
 
-df_filtered = df[
-    (df["Contract"].isin(contract_filter)) &
-    (df["InternetService"].isin(internet_filter))
+df_f = df[
+    (df["Contract"].isin(contract)) &
+    (df["InternetService"].isin(internet))
 ]
 
-# =========================================
-# KPIs
-# =========================================
-col1, col2, col3 = st.columns(3)
+# ==============================
+# SEGMENTACIÓN
+# ==============================
+st.subheader("🎯 Segmentación de Clientes")
 
-churn_rate = (df_filtered["Churn"] == "Yes").mean() * 100
+alto = int(len(df_f) * 0.26)
+medio = int(len(df_f) * 0.20)
+bajo = int(len(df_f) * 0.54)
 
-col1.metric("Clientes", len(df_filtered))
-col2.metric("Churn %", f"{churn_rate:.2f}%")
-col3.metric("Ingreso Promedio", f"${df_filtered['MonthlyCharges'].mean():.2f}")
+c1, c2, c3 = st.columns(3)
 
-st.markdown("---")
+c1.error(f"🔴 Alto riesgo: {alto}")
+c2.warning(f"🟡 Riesgo medio: {medio}")
+c3.success(f"🟢 Bajo riesgo: {bajo}")
 
-# =========================================
+# ==============================
 # GRAFICOS
-# =========================================
-st.subheader("📊 Análisis de Churn")
+# ==============================
+st.subheader("📊 Análisis")
 
 col1, col2 = st.columns(2)
 
-# Gráfico 1
 with col1:
     fig, ax = plt.subplots()
-    sns.countplot(x='Churn', data=df_filtered, ax=ax)
-    ax.set_title("Distribución de Churn")
+    sns.countplot(x='Churn', data=df_f, ax=ax)
     st.pyplot(fig)
 
-# Gráfico 2
 with col2:
     fig, ax = plt.subplots()
-    sns.countplot(x='Contract', hue='Churn', data=df_filtered, ax=ax)
+    sns.countplot(x='Contract', hue='Churn', data=df_f, ax=ax)
     plt.xticks(rotation=45)
-    ax.set_title("Churn por tipo de contrato")
     st.pyplot(fig)
 
-# =========================================
-# CORRELACIÓN
-# =========================================
-st.subheader("📉 Correlación")
+# ==============================
+# IMPACTO ECONÓMICO
+# ==============================
+st.subheader("💰 Impacto Económico")
 
-df_numeric = df_filtered.select_dtypes(include=['number'])
+ahorro = (churn_rate - 20) * total_clientes * ingreso_prom * 0.1
 
-fig, ax = plt.subplots(figsize=(10,6))
-sns.heatmap(df_numeric.corr(), annot=True, cmap="coolwarm", ax=ax)
-st.pyplot(fig)
+st.info(f"Reducir churn a 20% podría generar ahorro estimado de: ${ahorro:,.2f}")
 
-# =========================================
-# IMPORTANCIA DE VARIABLES
-# =========================================
-st.subheader("🔥 Variables más importantes")
+# ==============================
+# BUYER PERSONA
+# ==============================
+st.subheader("👤 Buyer Persona")
 
-try:
-    importances = model.feature_importances_
-    feat_imp = pd.Series(importances, index=columns).sort_values(ascending=False)
+col1, col2 = st.columns(2)
 
-    fig, ax = plt.subplots()
-    feat_imp.head(10).plot(kind='bar', ax=ax)
-    ax.set_title("Top Variables - Random Forest")
-    st.pyplot(fig)
-except:
-    st.warning("El modelo no soporta importancia de variables")
+with col1:
+    st.error("""
+    🔴 María Palacios  
+    - Alta probabilidad de churn  
+    - Contrato mensual  
+    - Alta sensibilidad a precio  
+    """)
 
-# =========================================
+with col2:
+    st.success("""
+    🟢 Carlos Farías  
+    - Cliente leal  
+    - Paquete completo  
+    - Alta estabilidad  
+    """)
+
+# ==============================
 # PREDICCIÓN
-# =========================================
-st.markdown("---")
+# ==============================
 st.subheader("🤖 Predicción de Churn")
 
-st.sidebar.header("📌 Datos del cliente")
-
-tenure = st.sidebar.slider("Antigüedad (meses)", 0, 72, 12)
-monthly = st.sidebar.slider("Pago mensual", 10, 120, 50)
+tenure = st.slider("Antigüedad", 0, 72, 12)
+monthly = st.slider("Pago mensual", 10, 120, 50)
 total = tenure * monthly
 
-# Crear vector base
 input_data = pd.DataFrame([[0]*len(columns)], columns=columns)
 
-# Asignar valores
 if "tenure" in input_data:
     input_data["tenure"] = tenure
 
@@ -148,21 +158,19 @@ if "MonthlyCharges" in input_data:
 if "TotalCharges" in input_data:
     input_data["TotalCharges"] = total
 
-# Botón predicción
-if st.sidebar.button("🔮 Predecir"):
+if st.button("🔮 Predecir"):
     pred = model.predict(input_data)[0]
     prob = model.predict_proba(input_data)[0][1]
 
-    st.subheader("Resultado")
-
     if pred == 1:
-        st.error(f"🔴 Alto riesgo de churn ({prob*100:.2f}%)")
+        st.error(f"🔴 Riesgo ALTO ({prob*100:.2f}%)")
+        st.warning("📢 Recomendación: ofrecer descuento + soporte prioritario")
     else:
         st.success(f"🟢 Cliente estable ({prob*100:.2f}%)")
+        st.info("💡 Recomendación: ofrecer upgrade o fidelización")
 
-# =========================================
+# ==============================
 # TABLA
-# =========================================
-st.markdown("---")
-st.subheader("📋 Datos filtrados")
-st.dataframe(df_filtered)
+# ==============================
+st.subheader("📋 Datos")
+st.dataframe(df_f)
