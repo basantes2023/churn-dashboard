@@ -33,7 +33,7 @@ columns = joblib.load("columnas.pkl")
 # TITULO
 # ==============================
 st.title("🚀 CNT EP - Sistema Inteligente Anti-Churn")
-st.markdown("### 📊 Analítica avanzada + IA para retención de clientes")
+st.markdown("### 📊 Analítica avanzada para retención de clientes")
 
 # ==============================
 # KPIs
