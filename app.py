@@ -1,5 +1,5 @@
 # =========================================
-# 🚀 CNT EP - DASHBOARD PRO 10/10
+# 🚀 CNT EP - DASHBOARD 
 # =========================================
 
 import streamlit as st
